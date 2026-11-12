@@ -13,5 +13,30 @@ namespace HolidayMaker.Repositories
         {
             _db = db;
         }
+
+        public List<Hotel> GetAllHotels()
+        {
+            var hotels = new List<Hotel>();
+            using var conn = _db.GetConnection();
+            conn.Open();
+
+            string sql = "SELECT id, name, location, distance_to_beach, distance_to_city, rating FROM Hotels ORDER BY name";
+            using var cmd = new MySqlCommand(sql, conn);
+            using var reader = cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                hotels.Add(new Hotel
+                {
+                    Id = reader.GetUInt64("id"),
+                    Name = reader.GetString("name"),
+                    Location = reader.GetString("location"),
+                    DistanceToBeach = reader.GetInt32("distance_to_beach"),
+                    DistanceToCity = reader.GetInt32("distance_to_city"),
+                    Rating = reader.GetDecimal("rating")
+                });
+            }
+            return hotels;
+        }
     }
 }
