@@ -12,5 +12,6 @@ namespace HolidayMaker.Models
         public decimal TotalPrice { get; set; }
         public int NumberOfOccupant { get; set; }
         public bool IsCancelled { get; set; }
+        public bool IsBooked { get; set;}
     }
 }
