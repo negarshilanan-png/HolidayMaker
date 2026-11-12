@@ -38,5 +38,24 @@ namespace HolidayMaker.Repositories
             }
             return customers;
         }
+
+        public ulong AddCustomer(string name, string address, string email, string phone)
+        {
+            using var conn = _db.GetConnection();
+            conn.Open();
+
+            string sql = @"
+                INSERT INTO Customers (name, address, email, phone)
+                VALUES (@name, @address, @email, @phone);
+                SELECT LAST_INSERT_ID();";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", name);
+            cmd.Parameters.AddWithValue("@address", address);
+            cmd.Parameters.AddWithValue("@email", email);
+            cmd.Parameters.AddWithValue("@phone", phone);
+
+            return Convert.ToUInt64(cmd.ExecuteScalar());
+        }
     }
 }
