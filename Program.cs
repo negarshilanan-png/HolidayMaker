@@ -52,8 +52,51 @@ namespace HolidayMaker
             }
         }
 
-        static void SelectCustomer() { }
-        static void RegisterCustomer() { }
+        static void SelectCustomer()
+        {
+            var customers = _customerRepo.GetAllCustomers();
+            Console.WriteLine("\n--- Befintliga kunder ---");
+            foreach (var c in customers)
+            {
+                Console.WriteLine($"ID: {c.Id} | {c.Name} | {c.Email} | {c.Phone}");
+            }
+
+            Console.Write("Ange kundens ID: ");
+            if (ulong.TryParse(Console.ReadLine(), out ulong id))
+            {
+                _selectedCustomer = customers.Find(c => c.Id == id);
+                Console.WriteLine(_selectedCustomer != null
+                    ? $"Kund vald: {_selectedCustomer.Name}"
+                    : "Kunden hittades inte.");
+            }
+            else
+            {
+                Console.WriteLine("Ogiltigt ID.");
+            }
+        }
+
+        static void RegisterCustomer()
+        {
+            Console.Write("Namn: ");
+            string name = Console.ReadLine() ?? "";
+            Console.Write("Adress: ");
+            string address = Console.ReadLine() ?? "";
+            Console.Write("E-post: ");
+            string email = Console.ReadLine() ?? "";
+            Console.Write("Telefon: ");
+            string phone = Console.ReadLine() ?? "";
+
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email))
+            {
+                Console.WriteLine("Namn och e-post måste anges.");
+                return;
+            }
+
+            ulong newId = _customerRepo.AddCustomer(name, address, email, phone);
+            _selectedCustomer = new Customer { Id = newId, Name = name, Address = address, Email = email, Phone = phone };
+            Console.WriteLine($"Ny kund registrerad och vald! ID: {newId}");
+        }
+
         static void SearchAndBook() { }
         static void ShowCustomerBookings() { }
         static void UpdateBookingOccupants() { }
