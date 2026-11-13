@@ -114,6 +114,11 @@ namespace HolidayMaker
                 Console.WriteLine("Felaktigt datumformat.");
                 return;
             }
+            if (checkIn.Date < DateTime.Today)
+            {
+                Console.WriteLine("Incheckningsdatum kan inte vara i det förflutna.");
+                return;
+            }
 
             Console.Write("Utcheckningsdatum (YYYY-MM-DD): ");
             if (!DateTime.TryParseExact(Console.ReadLine(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime checkOut))
