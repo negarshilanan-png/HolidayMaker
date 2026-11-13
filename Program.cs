@@ -184,8 +184,69 @@ namespace HolidayMaker
             Console.WriteLine($"\nBokning bekräftad! Bokningsnummer: {bookingNumber} | Totalpris: {totalPrice} kr");
         }
 
-        static void ShowCustomerBookings() { }
-        static void UpdateBookingOccupants() { }
-        static void CancelBooking() { }
+        static void ShowCustomerBookings()
+        {
+            if (_selectedCustomer == null)
+            {
+                Console.WriteLine("Välj en kund först.");
+                return;
+            }
+
+            var bookings = _bookingRepo.GetCustomerBookings(_selectedCustomer.Id);
+            if (bookings.Count == 0)
+            {
+                Console.WriteLine("Kunden har inga aktiva bokningar.");
+                return;
+            }
+
+            Console.WriteLine($"\n--- Bokningar för {_selectedCustomer.Name} ---");
+            foreach (var b in bookings)
+            {
+                Console.WriteLine($"Bokningsnr: {b.BookingNumber} | {b.HotelName} (Rum #{b.RoomNumber}) | {b.StartDate:yyyy-MM-dd} till {b.EndDate:yyyy-MM-dd} | Personer: {b.NumberOfOccupant} | Totalpris: {b.TotalPrice} kr");
+            }
+        }
+
+        static void UpdateBookingOccupants()
+        {
+            ShowCustomerBookings();
+            if (_selectedCustomer == null) return;
+
+            Console.Write("Ange bokningsnummer att ändra: ");
+            if (!ulong.TryParse(Console.ReadLine(), out ulong bookingNumber))
+            {
+                Console.WriteLine("Ogiltigt bokningsnummer.");
+                return;
+            }
+
+            Console.Write("Nytt antal personer: ");
+            if (!int.TryParse(Console.ReadLine(), out int newCount) || newCount <= 0)
+            {
+                Console.WriteLine("Ogiltigt antal personer.");
+                return;
+            }
+
+            bool updated = _bookingRepo.UpdateOccupants(bookingNumber, newCount);
+            Console.WriteLine(updated
+                ? "Antal personer har uppdaterats."
+                : "Kunde inte uppdatera (kontrollera att bokningsnumret stämmer och att rummets kapacitet räcker).");
+        }
+
+        static void CancelBooking()
+        {
+            ShowCustomerBookings();
+            if (_selectedCustomer == null) return;
+
+            Console.Write("Ange bokningsnummer att avboka: ");
+            if (!ulong.TryParse(Console.ReadLine(), out ulong bookingNumber))
+            {
+                Console.WriteLine("Ogiltigt bokningsnummer.");
+                return;
+            }
+
+            bool deleted = _bookingRepo.DeleteBooking(bookingNumber);
+            Console.WriteLine(deleted
+                ? "Bokningen har tagits bort och rummet är nu ledigt igen."
+                : "Bokningen hittades inte.");
+        }
     }
 }
