@@ -68,6 +68,40 @@ namespace HolidayMaker.Repositories
 
             return Convert.ToUInt64(insertCmd.ExecuteScalar());
         }
+
+        public List<BookingInfo> GetCustomerBookings(ulong customerId)
+        {
+            var list = new List<BookingInfo>();
+            using var conn = _db.GetConnection();
+            conn.Open();
+
+            string sql = @"
+                SELECT b.booking_number, h.name AS hotel_name, r.room_number,
+                       b.start_date, b.end_date, b.number_of_occupant, b.total_price
+                FROM Bookings b
+                JOIN Rooms r ON b.room_id = r.id
+                JOIN Hotels h ON r.hotel_id = h.id
+                WHERE b.customer_id = @customerId AND b.is_cancelled = FALSE
+                ORDER BY b.start_date";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@customerId", customerId);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add(new BookingInfo
+                {
+                    BookingNumber = reader.GetUInt64("booking_number"),
+                    HotelName = reader.GetString("hotel_name"),
+                    RoomNumber = reader.GetInt32("room_number"),
+                    StartDate = reader.GetDateTime("start_date"),
+                    EndDate = reader.GetDateTime("end_date"),
+                    NumberOfOccupant = reader.GetInt32("number_of_occupant"),
+                    TotalPrice = reader.GetDecimal("total_price")
+                });
+            }
+            return list;
+        }
     }
 }
-
