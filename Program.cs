@@ -86,11 +86,11 @@ namespace HolidayMaker
             Console.Write("Telefon: ");
             string phone = Console.ReadLine() ?? "";
 
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email))
-            {
-                Console.WriteLine("Du måste ange både för- och efternamn samt en giltig e-postadress.");
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(name) || !name.Trim().Contains(' ') || string.IsNullOrWhiteSpace(email))
+        {
+            Console.WriteLine("Du måste ange både för- och efternamn samt e-post.");
+            return;
+        }
 
             ulong newId = _customerRepo.AddCustomer(name, address, email, phone);
             _selectedCustomer = new Customer { Id = newId, Name = name, Address = address, Email = email, Phone = phone };
