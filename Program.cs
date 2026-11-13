@@ -88,7 +88,7 @@ namespace HolidayMaker
 
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email))
             {
-                Console.WriteLine("Namn och e-post måste anges.");
+                Console.WriteLine("Du måste ange både för- och efternamn samt en giltig e-postadress.");
                 return;
             }
 
