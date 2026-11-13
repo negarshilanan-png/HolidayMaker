@@ -104,36 +104,41 @@ namespace HolidayMaker.Repositories
             return list;
         }
 
-        public bool UpdateOccupants(ulong bookingNumber, int newOccupants)
+        public bool UpdateOccupants(ulong bookingNumber, ulong customerId, int newCount)
         {
             using var conn = _db.GetConnection();
             conn.Open();
 
-            string sql = @"
-                UPDATE Bookings b
-                JOIN Rooms r ON b.room_id = r.id
-                SET b.number_of_occupant = @newOccupants
-                WHERE b.booking_number = @bookingNumber
-                  AND @newOccupants > 0
-                  AND @newOccupants <= r.capacity";
+            string sql = @"UPDATE Bookings b
+                   JOIN Rooms r ON b.room_id = r.id
+                   SET b.num_guests = @newCount
+                   WHERE b.id = @bookingNumber
+                     AND b.customer_id = @customerId
+                     AND @newCount >= 1
+                     AND @newCount <= r.capacity;";
 
             using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@newOccupants", newOccupants);
             cmd.Parameters.AddWithValue("@bookingNumber", bookingNumber);
+            cmd.Parameters.AddWithValue("@customerId", customerId);
+            cmd.Parameters.AddWithValue("@newCount", newCount);
 
             return cmd.ExecuteNonQuery() > 0;
         }
 
-        public bool DeleteBooking(ulong bookingNumber)
+        public bool DeleteBooking(ulong bookingNumber, ulong customerId)
         {
             using var conn = _db.GetConnection();
             conn.Open();
 
-            string sql = "DELETE FROM Bookings WHERE booking_number = @bookingNumber";
+            string sql = "DELETE FROM Bookings WHERE id = @bookingNumber AND customer_id = @customerId;";
+
             using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@bookingNumber", bookingNumber);
+            cmd.Parameters.AddWithValue("@customerId", customerId);
 
             return cmd.ExecuteNonQuery() > 0;
         }
     }
-}
+}   
+
+
