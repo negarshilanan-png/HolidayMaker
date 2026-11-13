@@ -45,11 +45,54 @@ namespace HolidayMaker.Repositories
                         AND b.end_date > @checkIn
                   )";
 
+            if (requirePool)
+            {
+                sql += @" AND h.id IN (
+                    SELECT ha.hotel_id FROM Hotel_x_Amenities ha
+                    JOIN Amenities a ON ha.amenities_id = a.id
+                    WHERE a.name = 'Pool'
+                )";
+            }
+
+            if (requireRestaurant)
+            {
+                sql += @" AND h.id IN (
+                    SELECT ha.hotel_id FROM Hotel_x_Amenities ha
+                    JOIN Amenities a ON ha.amenities_id = a.id
+                    WHERE a.name = 'Restaurang'
+                )";
+            }
+
+            if (maxBeachDistance.HasValue)
+            {
+                sql += " AND h.distance_to_beach <= @maxBeach";
+            }
+
+            if (maxCityDistance.HasValue)
+            {
+                sql += " AND h.distance_to_city <= @maxCity";
+            }
+
+            if (sortByRatingDesc)
+            {
+                sql += " ORDER BY h.rating DESC, r.id_price_per_night ASC";
+            }
+            else
+            {
+                sql += " ORDER BY r.id_price_per_night ASC";
+            }
+
             using var cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@location", location);
             cmd.Parameters.AddWithValue("@guests", guests);
             cmd.Parameters.AddWithValue("@checkIn", checkIn.Date);
             cmd.Parameters.AddWithValue("@checkOut", checkOut.Date);
+
+            if (maxBeachDistance.HasValue)
+                cmd.Parameters.AddWithValue("@maxBeach", maxBeachDistance.Value);
+
+            if (maxCityDistance.HasValue)
+                cmd.Parameters.AddWithValue("@maxCity", maxCityDistance.Value);
 
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
