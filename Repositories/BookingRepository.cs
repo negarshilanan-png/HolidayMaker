@@ -103,5 +103,37 @@ namespace HolidayMaker.Repositories
             }
             return list;
         }
+
+        public bool UpdateOccupants(ulong bookingNumber, int newOccupants)
+        {
+            using var conn = _db.GetConnection();
+            conn.Open();
+
+            string sql = @"
+                UPDATE Bookings b
+                JOIN Rooms r ON b.room_id = r.id
+                SET b.number_of_occupant = @newOccupants
+                WHERE b.booking_number = @bookingNumber
+                  AND @newOccupants > 0
+                  AND @newOccupants <= r.capacity";
+
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@newOccupants", newOccupants);
+            cmd.Parameters.AddWithValue("@bookingNumber", bookingNumber);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        public bool DeleteBooking(ulong bookingNumber)
+        {
+            using var conn = _db.GetConnection();
+            conn.Open();
+
+            string sql = "DELETE FROM Bookings WHERE booking_number = @bookingNumber";
+            using var cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@bookingNumber", bookingNumber);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
     }
 }
