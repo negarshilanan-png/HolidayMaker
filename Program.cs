@@ -97,7 +97,93 @@ namespace HolidayMaker
             Console.WriteLine($"Ny kund registrerad och vald! ID: {newId}");
         }
 
-        static void SearchAndBook() { }
+        static void SearchAndBook()
+        {
+            if (_selectedCustomer == null)
+            {
+                Console.WriteLine("Du måste välja eller registrera en kund först (val 1 eller 2).");
+                return;
+            }
+
+            Console.Write("Ort (t.ex. Halmstad eller Malmö): ");
+            string location = Console.ReadLine() ?? "";
+
+            Console.Write("Incheckningsdatum (YYYY-MM-DD): ");
+            if (!DateTime.TryParseExact(Console.ReadLine(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime checkIn))
+            {
+                Console.WriteLine("Felaktigt datumformat.");
+                return;
+            }
+
+            Console.Write("Utcheckningsdatum (YYYY-MM-DD): ");
+            if (!DateTime.TryParseExact(Console.ReadLine(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime checkOut))
+            {
+                Console.WriteLine("Felaktigt datumformat.");
+                return;
+            }
+
+            if (checkOut <= checkIn)
+            {
+                Console.WriteLine("Utcheckningsdatum måste ligga efter incheckningsdatum.");
+                return;
+            }
+
+            Console.Write("Antal personer: ");
+            if (!int.TryParse(Console.ReadLine(), out int guests) || guests <= 0)
+            {
+                Console.WriteLine("Ogiltigt antal personer.");
+                return;
+            }
+
+            Console.Write("Krävs pool? (j/n): ");
+            bool needPool = Console.ReadLine()?.Trim().ToLower() == "j";
+
+            Console.Write("Krävs restaurang? (j/n): ");
+            bool needRestaurant = Console.ReadLine()?.Trim().ToLower() == "j";
+
+            Console.Write("Max avstånd till strand i meter (lämna tomt för inget krav): ");
+            string? beachInput = Console.ReadLine();
+            int? maxBeach = int.TryParse(beachInput, out int bVal) ? bVal : null;
+
+            Console.Write("Max avstånd till centrum i meter (lämna tomt för inget krav): ");
+            string? cityInput = Console.ReadLine();
+            int? maxCity = int.TryParse(cityInput, out int cVal) ? cVal : null;
+
+            Console.Write("Sortera efter: 1 = Lägsta pris först, 2 = Högsta omdöme först: ");
+            bool sortByRating = Console.ReadLine()?.Trim() == "2";
+
+            var rooms = _roomRepo.SearchAvailableRooms(
+                location, checkIn, checkOut, guests,
+                needPool, needRestaurant, maxBeach, maxCity, sortByRating);
+
+            if (rooms.Count == 0)
+            {
+                Console.WriteLine("\nInga lediga rum matchade dina sökkriterier.");
+                return;
+            }
+
+            Console.WriteLine("\n--- Lediga rum ---");
+            foreach (var r in rooms)
+            {
+                Console.WriteLine($"Rum-ID: {r.RoomId} | {r.HotelName} ({r.Location}) | Rum #{r.RoomNumber} | Kapacitet: {r.Capacity} | Pris/natt: {r.PricePerNight} kr | Omdöme: {r.Rating}");
+            }
+
+            Console.Write("\nAnge Rum-ID att boka (eller 0 för att avbryta): ");
+            if (!ulong.TryParse(Console.ReadLine(), out ulong chosenRoomId) || chosenRoomId == 0)
+            {
+                return;
+            }
+
+            if (!rooms.Exists(r => r.RoomId == chosenRoomId))
+            {
+                Console.WriteLine("Ogiltigt Rum-ID från sökresultatet.");
+                return;
+            }
+
+            ulong bookingNumber = _bookingRepo.CreateBooking(_selectedCustomer.Id, chosenRoomId, checkIn, checkOut, guests, out decimal totalPrice);
+            Console.WriteLine($"\nBokning bekräftad! Bokningsnummer: {bookingNumber} | Totalpris: {totalPrice} kr");
+        }
+
         static void ShowCustomerBookings() { }
         static void UpdateBookingOccupants() { }
         static void CancelBooking() { }
