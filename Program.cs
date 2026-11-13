@@ -230,7 +230,7 @@ namespace HolidayMaker
                 return;
             }
 
-            bool updated = _bookingRepo.UpdateOccupants(bookingNumber, newCount);
+            bool updated = _bookingRepo.UpdateOccupants(bookingNumber, _selectedCustomer.Id, newCount);
             Console.WriteLine(updated
                 ? "Antal personer har uppdaterats."
                 : "Kunde inte uppdatera (kontrollera att bokningsnumret stämmer och att rummets kapacitet räcker).");
@@ -248,7 +248,7 @@ namespace HolidayMaker
                 return;
             }
 
-            bool deleted = _bookingRepo.DeleteBooking(bookingNumber);
+           bool deleted = _bookingRepo.DeleteBooking(bookingNumber, _selectedCustomer.Id);
             Console.WriteLine(deleted
                 ? "Bokningen har tagits bort och rummet är nu ledigt igen."
                 : "Bokningen hittades inte.");
